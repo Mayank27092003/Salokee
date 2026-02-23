@@ -29,6 +29,9 @@ COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
 COPY --from=builder --chown=appuser:nodejs /app/prisma ./prisma
 COPY --chown=appuser:nodejs package.json ./
 
+# Create logs directory
+RUN mkdir -p logs && chown -R appuser:nodejs logs
+
 USER appuser
 
 EXPOSE 5000

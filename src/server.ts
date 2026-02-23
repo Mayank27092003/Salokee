@@ -27,7 +27,7 @@ const bootstrap = async () => {
     const app = createApp();
     const server = http.createServer(app);
 
-    server.listen(env.PORT, () => {
+    server.listen(env.PORT, '0.0.0.0', () => {
       logger.info(`✅ Server running on port ${env.PORT}`);
       logger.info(`📡 API: ${env.API_URL}/api/${env.API_VERSION}`);
       logger.info(`🏥 Health: ${env.API_URL}/health`);
