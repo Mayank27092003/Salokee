@@ -1,13 +1,24 @@
 import Redis from 'ioredis';
-import { env } from './env';
+import { env, isProd } from './env';
 import { logger } from './logger';
 
 // ─────────────────────────────────────────────────────────────
-// Redis Client — used for token blacklisting, rate limiting,
-// session caching, and general caching
+// Redis Client Stability Layer
+// Since Render free tier often lacks Redis, we use an "Air Gap"
+// strategy to prevent connection attempts and async crashes.
 // ─────────────────────────────────────────────────────────────
 
+// Determine if we should even try to use Redis
+const shouldSkipRedis = isProd &&
+  (env.REDIS_HOST === 'localhost' || !env.REDIS_HOST || env.REDIS_HOST.includes('127.0.0.1'));
+
+let isRedisActive = !shouldSkipRedis;
+
 const createRedisClient = () => {
+  if (!isRedisActive) {
+    return null;
+  }
+
   const client = new Redis({
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
@@ -15,30 +26,26 @@ const createRedisClient = () => {
     db: env.REDIS_DB,
     tls: env.REDIS_TLS ? {} : undefined,
     retryStrategy: (times) => {
-      if (times > 3) {
-        logger.error('Redis retry limit reached — disabling Redis');
+      // Very conservative retry strategy
+      if (times > 2) {
+        logger.error('Redis retry limit reached — deactivating Redis module');
+        isRedisActive = false;
         return null; // Stop retrying
       }
-      const delay = Math.min(times * 200, 2000);
-      logger.warn(`Redis reconnecting in ${delay}ms (attempt ${times})`);
-      return delay;
+      return Math.min(times * 500, 2000);
     },
     enableOfflineQueue: false,
     lazyConnect: true,
     connectTimeout: 5000,
-    maxRetriesPerRequest: 0, // Disable automatic retries per request to avoid unhandled rejections
+    maxRetriesPerRequest: 0, // CRITICAL: Stop ioredis from throwing unhandled rejections on disconnect
   });
 
   client.on('connect', () => logger.info('✅ Redis connected'));
-  client.on('ready', () => logger.info('✅ Redis ready'));
   client.on('error', (err) => {
-    // Only log if not already disabling
-    if (client.status !== 'end') {
-      logger.error('Redis error', { error: err.message });
+    if (isRedisActive) {
+      logger.warn('Redis connection error (Non-fatal)', { error: err.message });
     }
   });
-  client.on('close', () => logger.warn('Redis connection closed'));
-  client.on('reconnecting', () => logger.info('Redis reconnecting...'));
 
   return client;
 };
@@ -46,28 +53,24 @@ const createRedisClient = () => {
 export const redis = createRedisClient();
 
 export const connectRedis = async (): Promise<boolean> => {
-  // If Redis is not configured (e.g. localhost in prod) or fails, we just don't use it.
-  if (env.NODE_ENV === 'production' && (env.REDIS_HOST === 'localhost' || !env.REDIS_HOST)) {
-    logger.warn('Skipping Redis connection in Production (Host not configured correctly)');
+  if (!isRedisActive || !redis) {
+    logger.warn('⚠️  Redis skipped (Air-Gapped) — running in standalone mode');
     return false;
   }
 
   try {
-    // Only attempt connection if not already connecting/connected
     if (redis.status === 'wait') {
-      await redis.connect().catch((err) => {
-        logger.warn('Redis initial connection failed (Ignored)', { error: err.message });
-      });
+      await redis.connect().catch(() => { });
     }
 
-    // Check if we are connected
     if (redis.status === 'ready' || redis.status === 'connect') {
       await redis.ping();
       return true;
     }
     return false;
   } catch (error) {
-    logger.warn('⚠️ Redis unavailable — running without cache/token blacklist', {
+    isRedisActive = false;
+    logger.warn('⚠️  Redis failed to initialize — disabling caching', {
       error: (error as Error).message,
     });
     return false;
@@ -75,68 +78,43 @@ export const connectRedis = async (): Promise<boolean> => {
 };
 
 export const disconnectRedis = async () => {
-  await redis.quit();
-  logger.info('Redis disconnected');
+  if (redis) await redis.quit();
 };
 
 // ─────────────────────────────────────────────────────────────
-// Redis helpers
+// Safe Redis Helpers (No-op if inactive)
 // ─────────────────────────────────────────────────────────────
 
-/** Store a value with optional TTL (seconds) */
-export const redisSet = async (
-  key: string,
-  value: string,
-  ttlSeconds?: number,
-): Promise<boolean> => {
+export const redisSet = async (key: string, value: string, ttl?: number): Promise<boolean> => {
+  if (!isRedisActive || !redis) return false;
   try {
-    if (ttlSeconds) {
-      await redis.setex(key, ttlSeconds, value);
-    } else {
-      await redis.set(key, value);
-    }
+    if (ttl) await redis.setex(key, ttl, value);
+    else await redis.set(key, value);
     return true;
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 };
 
-/** Get a value */
 export const redisGet = async (key: string): Promise<string | null> => {
-  try {
-    return await redis.get(key);
-  } catch {
-    return null;
-  }
+  if (!isRedisActive || !redis) return null;
+  try { return await redis.get(key); } catch { return null; }
 };
 
-/** Delete a key */
 export const redisDel = async (key: string): Promise<boolean> => {
-  try {
-    await redis.del(key);
-    return true;
-  } catch {
-    return false;
-  }
+  if (!isRedisActive || !redis) return false;
+  try { await redis.del(key); return true; } catch { return false; }
 };
 
-/** Check if key exists */
 export const redisExists = async (key: string): Promise<boolean> => {
-  try {
-    const result = await redis.exists(key);
-    return result === 1;
-  } catch {
-    return false;
-  }
+  if (!isRedisActive || !redis) return false;
+  try { return (await redis.exists(key)) === 1; } catch { return false; }
 };
 
-// ─── Token blacklist operations ───────────────────────────────
 export const BLACKLIST_PREFIX = 'blacklist:token:';
 export const SESSION_PREFIX = 'session:';
 export const RATE_LIMIT_PREFIX = 'rl:';
 
-export const blacklistToken = async (jti: string, ttlSeconds: number): Promise<void> => {
-  await redisSet(`${BLACKLIST_PREFIX}${jti}`, '1', ttlSeconds);
+export const blacklistToken = async (jti: string, ttl: number): Promise<void> => {
+  await redisSet(`${BLACKLIST_PREFIX}${jti}`, '1', ttl);
 };
 
 export const isTokenBlacklisted = async (jti: string): Promise<boolean> => {

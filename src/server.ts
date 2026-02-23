@@ -79,9 +79,15 @@ const bootstrap = async () => {
       require('fs').writeFileSync(1, `\n❌ UNHANDLED REJECTION: ${message}\n`);
       logger.error('Unhandled rejection', { reason });
 
-      // If it's a Redis connection closure, don't kill the server
-      if (message.includes('Connection is closed')) {
-        require('fs').writeFileSync(1, '⚠️ Non-fatal rejection (likely Redis) — server will remain active.\n');
+      // CRITICAL SAFETY: If the error is Redis-related, do NOT crash the server.
+      // This is non-fatal for the application's core logic.
+      const isRedisError =
+        message.toLowerCase().includes('redis') ||
+        message.toLowerCase().includes('connection is closed') ||
+        message.toLowerCase().includes("stream isn't writeable");
+
+      if (isRedisError) {
+        require('fs').writeFileSync(1, '⚠️  Bypassing non-fatal rejection. Server will remain active.\n');
         return;
       }
 
