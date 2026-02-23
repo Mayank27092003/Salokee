@@ -74,9 +74,17 @@ const bootstrap = async () => {
       gracefulShutdown('UNCAUGHT_EXCEPTION');
     });
 
-    process.on('unhandledRejection', (reason) => {
-      require('fs').writeFileSync(1, `\n❌ UNHANDLED REJECTION: ${reason}\n`);
+    process.on('unhandledRejection', (reason: any) => {
+      const message = reason?.message || String(reason);
+      require('fs').writeFileSync(1, `\n❌ UNHANDLED REJECTION: ${message}\n`);
       logger.error('Unhandled rejection', { reason });
+
+      // If it's a Redis connection closure, don't kill the server
+      if (message.includes('Connection is closed')) {
+        require('fs').writeFileSync(1, '⚠️ Non-fatal rejection (likely Redis) — server will remain active.\n');
+        return;
+      }
+
       gracefulShutdown('UNHANDLED_REJECTION');
     });
   } catch (error: any) {

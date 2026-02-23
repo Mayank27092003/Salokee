@@ -46,12 +46,17 @@ const createRedisClient = () => {
 export const redis = createRedisClient();
 
 export const connectRedis = async (): Promise<boolean> => {
-  // If Redis is not configured or fails, we just don't use it.
+  // If Redis is not configured (e.g. localhost in prod) or fails, we just don't use it.
+  if (env.NODE_ENV === 'production' && (env.REDIS_HOST === 'localhost' || !env.REDIS_HOST)) {
+    logger.warn('Skipping Redis connection in Production (Host not configured correctly)');
+    return false;
+  }
+
   try {
     // Only attempt connection if not already connecting/connected
     if (redis.status === 'wait') {
       await redis.connect().catch((err) => {
-        logger.warn('Redis initial connection failed', { error: err.message });
+        logger.warn('Redis initial connection failed (Ignored)', { error: err.message });
       });
     }
 
