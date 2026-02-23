@@ -18,8 +18,8 @@ datasource db {
 
 enum Role {
   SUPER_ADMIN
-  ADMIN        // Salon owner/manager
-  STAFF        // Stylist/barber — Phase 2
+  ADMIN // Salon owner/manager
+  STAFF // Stylist/barber — Phase 2
   CUSTOMER
 }
 
@@ -48,19 +48,19 @@ enum Gender {
 // ─────────────────────────────────────────────────────────────
 
 model User {
-  id            String        @id @default(uuid()) @db.Uuid
-  email         String        @unique @db.VarChar(255)
-  phone         String?       @unique @db.VarChar(20)
-  passwordHash  String        @map("password_hash") @db.Text
-  role          Role          @default(CUSTOMER)
-  status        AccountStatus @default(PENDING_VERIFICATION)
+  id           String        @id @default(uuid()) @db.Uuid
+  email        String        @unique @db.VarChar(255)
+  phone        String?       @unique @db.VarChar(20)
+  passwordHash String        @map("password_hash") @db.Text
+  role         Role          @default(CUSTOMER)
+  status       AccountStatus @default(PENDING_VERIFICATION)
 
   // Profile
-  firstName     String        @map("first_name") @db.VarChar(100)
-  lastName      String        @map("last_name") @db.VarChar(100)
-  avatarUrl     String?       @map("avatar_url") @db.Text
-  gender        Gender?
-  dateOfBirth   DateTime?     @map("date_of_birth") @db.Date
+  firstName   String    @map("first_name") @db.VarChar(100)
+  lastName    String    @map("last_name") @db.VarChar(100)
+  avatarUrl   String?   @map("avatar_url") @db.Text
+  gender      Gender?
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
 
   // Security
   emailVerified       Boolean   @default(false) @map("email_verified")
@@ -97,13 +97,13 @@ model User {
 // ─────────────────────────────────────────────────────────────
 
 model CustomerProfile {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @unique @map("user_id") @db.Uuid
-  preferences    Json?    // Hair type, preferences, notes
-  loyaltyPoints  Int      @default(0) @map("loyalty_points")
-  totalBookings  Int      @default(0) @map("total_bookings")
-  totalSpent     Decimal  @default(0) @map("total_spent") @db.Decimal(10, 2)
-  notes          String?  @db.Text // Internal staff notes
+  id            String  @id @default(uuid()) @db.Uuid
+  userId        String  @unique @map("user_id") @db.Uuid
+  preferences   Json? // Hair type, preferences, notes
+  loyaltyPoints Int     @default(0) @map("loyalty_points")
+  totalBookings Int     @default(0) @map("total_bookings")
+  totalSpent    Decimal @default(0) @map("total_spent") @db.Decimal(10, 2)
+  notes         String? @db.Text // Internal staff notes
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -164,18 +164,18 @@ model Token {
 // ─────────────────────────────────────────────────────────────
 
 model Session {
-  id           String    @id @default(uuid()) @db.Uuid
-  userId       String    @map("user_id") @db.Uuid
-  refreshTokenId String? @map("refresh_token_id") @db.Uuid
-  deviceName   String?   @map("device_name") @db.VarChar(255)
-  deviceType   String?   @map("device_type") @db.VarChar(50)
-  browser      String?   @db.VarChar(100)
-  os           String?   @db.VarChar(100)
-  ipAddress    String?   @map("ip_address") @db.VarChar(45)
-  location     String?   @db.VarChar(255)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastActiveAt DateTime  @default(now()) @map("last_active_at")
-  expiresAt    DateTime  @map("expires_at")
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  refreshTokenId String?  @map("refresh_token_id") @db.Uuid
+  deviceName     String?  @map("device_name") @db.VarChar(255)
+  deviceType     String?  @map("device_type") @db.VarChar(50)
+  browser        String?  @db.VarChar(100)
+  os             String?  @db.VarChar(100)
+  ipAddress      String?  @map("ip_address") @db.VarChar(45)
+  location       String?  @db.VarChar(255)
+  isActive       Boolean  @default(true) @map("is_active")
+  lastActiveAt   DateTime @default(now()) @map("last_active_at")
+  expiresAt      DateTime @map("expires_at")
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -210,8 +210,8 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
-  @@index([userId, createdAt])   // covers per-user audit history queries
-  @@index([action, success])     // covers failed-event analysis queries
+  @@index([userId, createdAt]) // covers per-user audit history queries
+  @@index([action, success]) // covers failed-event analysis queries
   @@map("audit_logs")
 }
 
@@ -247,11 +247,11 @@ model Salon {
   businessHours Json? @map("business_hours")
 
   // Settings
-  timezone     String  @default("UTC") @db.VarChar(50)
-  currency     String  @default("USD") @db.VarChar(3)
-  bookingBuffer Int    @default(15) @map("booking_buffer") // minutes between appointments
-  maxAdvanceBook Int   @default(30) @map("max_advance_book") // days in advance
-  settings     Json?   // Additional configurable settings
+  timezone       String @default("UTC") @db.VarChar(50)
+  currency       String @default("USD") @db.VarChar(3)
+  bookingBuffer  Int    @default(15) @map("booking_buffer") // minutes between appointments
+  maxAdvanceBook Int    @default(30) @map("max_advance_book") // days in advance
+  settings       Json? // Additional configurable settings
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
