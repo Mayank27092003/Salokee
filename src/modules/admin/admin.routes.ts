@@ -184,7 +184,7 @@ router.get(
   validate(listUsersSchema, 'query'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, role, status, search, sortBy, sortOrder } = req.query as z.infer<typeof listUsersSchema>;
+      const { page, limit, role, status, search, sortBy, sortOrder } = req.query as unknown as z.infer<typeof listUsersSchema>;
       const { skip } = parsePagination(req.query as Record<string, unknown>);
 
       const where = {

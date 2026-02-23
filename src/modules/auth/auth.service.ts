@@ -1,4 +1,4 @@
-import { Role, TokenType, AccountStatus } from '@prisma/client';
+import { Role, TokenType, AccountStatus, PrismaClient } from '@prisma/client';
 import { prisma } from '../../config/database';
 import { env } from '../../config/env';
 import { logger } from '../../config/logger';
@@ -13,6 +13,7 @@ import {
 import {
   signAccessToken,
   signRefreshToken,
+  verifyAccessToken,
   verifyRefreshToken,
   getRefreshTokenExpiry,
   getEmailVerificationExpiry,
@@ -74,7 +75,7 @@ export class AuthService {
     const hashedVerificationToken = hashToken(verificationToken);
 
     // 5. Create user + profiles in transaction
-    const user = await prisma.$transaction(async (tx) => {
+    const user = await (prisma as any).$transaction(async (tx: any) => {
       const newUser = await tx.user.create({
         data: {
           email,
@@ -118,30 +119,30 @@ export class AuthService {
     // 6. Send verification email (non-blocking)
     const verificationUrl = `${env.CLIENT_URL}/auth/verify-email?token=${verificationToken}`;
     emailService.sendVerificationEmail({
-      to: user.email,
-      firstName: user.firstName,
+      to: (user as any).email,
+      firstName: (user as any).firstName,
       verificationUrl,
     });
 
     // 7. Log
     await this.createAuditLog({
-      userId: user.id,
+      userId: (user as any).id,
       action: 'AUTH_REGISTER',
       success: true,
       ipAddress: device.ipAddress,
       userAgent: device.userAgent,
     });
 
-    logger.info('New user registered', { userId: user.id, email: user.email, role: user.role });
+    logger.info('New user registered', { userId: (user as any).id, email: (user as any).email, role: (user as any).role });
 
     return {
       user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        status: user.status,
+        id: (user as any).id,
+        email: (user as any).email,
+        firstName: (user as any).firstName,
+        lastName: (user as any).lastName,
+        role: (user as any).role,
+        status: (user as any).status,
       },
       message: 'Registration successful. Please verify your email to continue.',
     };

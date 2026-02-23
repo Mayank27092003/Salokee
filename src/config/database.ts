@@ -14,16 +14,15 @@ const createPrismaClient = () => {
   const baseClient = new PrismaClient({
     log: isDev
       ? [
-          { emit: 'event', level: 'query' },
-          { emit: 'event', level: 'error' },
-          { emit: 'event', level: 'warn' },
-        ]
+        { emit: 'event', level: 'query' },
+        { emit: 'event', level: 'error' },
+        { emit: 'event', level: 'warn' },
+      ]
       : [{ emit: 'event', level: 'error' }],
     errorFormat: isDev ? 'pretty' : 'minimal',
   });
 
   if (isDev) {
-    // @ts-expect-error — Prisma event typing
     baseClient.$on('query', (e: { query: string; duration: number }) => {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
@@ -34,7 +33,6 @@ const createPrismaClient = () => {
     });
   }
 
-  // @ts-expect-error — Prisma event typing
   baseClient.$on('error', (e: { message: string }) => {
     logger.error('Prisma error', { message: e.message });
   });
@@ -84,8 +82,7 @@ const createPrismaClient = () => {
 export const prisma = global.__prisma ?? createPrismaClient();
 
 if (isDev) {
-  // @ts-expect-error — extended client type differs slightly
-  global.__prisma = prisma;
+  (global as any).__prisma = prisma;
 }
 
 // ─────────────────────────────────────────────────────────────
