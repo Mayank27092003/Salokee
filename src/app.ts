@@ -133,8 +133,12 @@ export const createApp = (): Application => {
 
     const redisStart = Date.now();
     try {
-      await redis.ping();
-      checks.redis = { status: 'healthy', latencyMs: Date.now() - redisStart };
+      if (redis) {
+        await redis.ping();
+        checks.redis = { status: 'healthy', latencyMs: Date.now() - redisStart };
+      } else {
+        checks.redis = { status: 'degraded', message: 'Redis is air-gapped' };
+      }
     } catch {
       checks.redis = { status: 'degraded', message: 'Redis unavailable' };
     }
