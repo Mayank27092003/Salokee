@@ -21,10 +21,10 @@ export default function ProFooter() {
                             Professional salon management software created by beauty professionals throughout Europe.
                         </p>
                         <div className="flex gap-4">
-                            <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Facebook size={16} /></a>
-                            <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Instagram size={16} /></a>
-                            <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Youtube size={16} /></a>
-                            <a href="#" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Linkedin size={16} /></a>
+                            <a href="https://facebook.com/solanacare" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Facebook size={16} /></a>
+                            <a href="https://instagram.com/solanacare" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Instagram size={16} /></a>
+                            <a href="https://youtube.com/@solanacare" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Youtube size={16} /></a>
+                            <a href="https://linkedin.com/company/solanacare" target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-[#f16335] hover:text-white transition-colors"><Linkedin size={16} /></a>
                         </div>
                     </div>
 
@@ -32,11 +32,11 @@ export default function ProFooter() {
                     <div>
                         <h4 className="font-bold text-neutral-900 mb-4 text-[15px]">Features</h4>
                         <ul className="space-y-3">
-                            <li><a href="#" className="text-[13px] font-bold text-neutral-800 mb-1 block">Manage your bookings</a></li>
+                            <li><span className="text-[13px] font-bold text-neutral-800 mb-1 block">Manage your bookings</span></li>
                             <li><a href="/professionals/features/smart-agenda" className="text-[13px] text-neutral-500 hover:text-[#f88863]">Smart Agenda</a></li>
                             <li><a href="/professionals/features/online-bookings" className="text-[13px] text-neutral-500 hover:text-[#f88863] mb-4 block">Online bookings</a></li>
 
-                            <li><a href="#" className="text-[13px] font-bold text-neutral-800 mb-1 block">Simplify your payments</a></li>
+                            <li><span className="text-[13px] font-bold text-neutral-800 mb-1 block">Simplify your payments</span></li>
                             <li><a href="/professionals/features/pos-system" className="text-[13px] text-neutral-500 hover:text-[#8b5cf6]">POS system</a></li>
                             <li><a href="/professionals/features/salonacare-payments" className="text-[13px] text-neutral-500 hover:text-[#8b5cf6]">Salonacare Payments</a></li>
                         </ul>
@@ -46,13 +46,13 @@ export default function ProFooter() {
                     <div>
                         <h4 className="font-bold text-neutral-900 mb-4 text-[15px] opacity-0 hidden lg:block">Features 2</h4>
                         <ul className="space-y-3">
-                            <li><a href="#" className="text-[13px] font-bold text-neutral-800 mb-1 block">Manage your business</a></li>
+                            <li><span className="text-[13px] font-bold text-neutral-800 mb-1 block">Manage your business</span></li>
                             <li><a href="/professionals/features/customer-management" className="text-[13px] text-neutral-500 hover:text-[#6bc4bb]">Customer management</a></li>
                             <li><a href="/professionals/features/employee-management" className="text-[13px] text-neutral-500 hover:text-[#6bc4bb]">Employee management</a></li>
                             <li><a href="/professionals/features/finance-and-statistics" className="text-[13px] text-neutral-500 hover:text-[#6bc4bb]">Finance and statistics</a></li>
                             <li><a href="/professionals/features/multi-location-support" className="text-[13px] text-neutral-500 hover:text-[#6bc4bb] mb-4 block">Multi-location support</a></li>
 
-                            <li><a href="#" className="text-[13px] font-bold text-neutral-800 mb-1 block">Grow your revenue</a></li>
+                            <li><span className="text-[13px] font-bold text-neutral-800 mb-1 block">Grow your revenue</span></li>
                             <li><a href="/professionals/features/sell-online-24-7" className="text-[13px] text-neutral-500 hover:text-[#f472b6]">Sell online 24/7</a></li>
                             <li><a href="/professionals/features/grow-your-online-visibility" className="text-[13px] text-neutral-500 hover:text-[#f472b6]">Grow your online visibility</a></li>
                             <li><a href="/professionals/features/marketing-tools" className="text-[13px] text-neutral-500 hover:text-[#f472b6]">Marketing tools</a></li>

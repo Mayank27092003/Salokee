@@ -63,9 +63,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         </button>
                     </div>
 
-                    <p className="text-xs text-neutral-500 text-center leading-relaxed pt-2">
-                        This site is protected by reCAPTCHA. (<a href="#" className="underline hover:text-neutral-700">Privacy</a>, <a href="#" className="underline hover:text-neutral-700">Terms of use</a>)
-                    </p>
+                    <div className="text-center mt-6 text-xs text-neutral-400">
+                        This site is protected by reCAPTCHA. (<a href="/professionals/privacy-policy" className="underline hover:text-neutral-700">Privacy</a>, <a href="/professionals/terms" className="underline hover:text-neutral-700">Terms of use</a>)
+                    </div>
                 </div>
             </div>
         </div>

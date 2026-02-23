@@ -7,16 +7,16 @@ const footerSections = [
   {
     title: 'COMPANY',
     links: [
-      { name: 'Support', href: '#' },
+      { name: 'Support', href: '/support' },
       { name: 'Terms & Conditions', href: '/professionals/terms' },
-      { name: 'View detailed guides', href: '#' }
+      { name: 'View detailed guides', href: '/guides' }
     ]
   },
   {
     title: 'LEGAL',
     links: [
       { name: 'Privacy Policy', href: '/professionals/privacy-policy' },
-      { name: 'Cookie Policy', href: '#' },
+      { name: 'Cookie Policy', href: '/cookie-policy' },
       { name: 'Terms of Use', href: '/professionals/terms' },
       { name: 'Legal Notice', href: '/professionals/legal' }
     ]
@@ -26,7 +26,7 @@ const footerSections = [
     links: [
       { name: 'Contact us', href: '/professionals/contact' },
       { name: 'Find a salon', href: '/customers/search' },
-      { name: 'About us', href: '#' }
+      { name: 'About us', href: '/about-us' }
     ]
   }
 ]
@@ -69,16 +69,16 @@ export default function Footer() {
           <div className="flex items-center space-x-6">
             <p className="font-semibold text-white">Solanacare</p>
             <div className="flex items-center space-x-4">
-              <a href="#" className="hover:text-white transition-colors"><Facebook size={18} /></a>
-              <a href="#" className="hover:text-white transition-colors"><Instagram size={18} /></a>
-              <a href="#" className="hover:text-white transition-colors"><Linkedin size={18} /></a>
-              <a href="#" className="hover:text-white transition-colors"><Twitter size={18} /></a>
+              <a href="https://facebook.com/solanacare" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Facebook size={18} /></a>
+              <a href="https://instagram.com/solanacare" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Instagram size={18} /></a>
+              <a href="https://linkedin.com/company/solanacare" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Linkedin size={18} /></a>
+              <a href="https://x.com/solanacare" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Twitter size={18} /></a>
             </div>
           </div>
 
           <p className="text-[#8B98A5] text-xs">© 2025 Solanacare S.A. All rights reserved.</p>
 
-          <button className="px-4 py-2 border border-[#4F5963] rounded hover:border-[#8B98A5] transition-colors text-xs font-semibold text-white">
+          <button onClick={() => window.location.href = "/professionals"} className="px-4 py-2 border border-[#4F5963] rounded hover:border-[#8B98A5] transition-colors text-xs font-semibold text-white">
             Professionals
           </button>
 
