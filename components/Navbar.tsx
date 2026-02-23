@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Menu, X, ChevronDown, Globe } from 'lucide-react'
 import LoginModal from './LoginModal'
 
@@ -30,6 +30,23 @@ export default function Navbar() {
   const [activeLang, setActiveLang] = useState(languages[0])
   const [langOpen, setLangOpen] = useState(false)
 
+  const countryRef = useRef<HTMLDivElement>(null)
+  const langRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setCountryOpen(false)
+      }
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
   return (
     <>
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm md:h-20 flex items-center">
@@ -56,7 +73,7 @@ export default function Navbar() {
               </Link>
 
               {/* Country Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={countryRef}>
                 <button
                   onClick={() => { setCountryOpen(!countryOpen); setLangOpen(false); }}
                   className="flex items-center space-x-2 text-neutral-600 hover:text-peach transition-colors text-sm font-semibold"
@@ -82,7 +99,7 @@ export default function Navbar() {
               </div>
 
               {/* Language Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={langRef}>
                 <button
                   onClick={() => { setLangOpen(!langOpen); setCountryOpen(false); }}
                   className="w-10 h-10 rounded-full border border-neutral-200 flex items-center justify-center hover:border-peach hover:text-peach text-neutral-600 transition-colors shadow-sm bg-white font-semibold text-sm gap-0.5"

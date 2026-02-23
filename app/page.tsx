@@ -28,6 +28,7 @@ export default function Home() {
   const router = useRouter();
   const [langOpen, setLangOpen] = useState(false);
   const [activeLang, setActiveLang] = useState(languages[0]);
+  const [activeCard, setActiveCard] = useState<"customers" | "professionals" | null>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -37,8 +38,8 @@ export default function Home() {
         setLangOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleSelect = (type: "customers" | "professionals") => {
@@ -73,9 +74,9 @@ export default function Home() {
               {activeLang.code}
               <span className={`text-xs transition-transform duration-300 ${langOpen ? 'rotate-180' : ''}`}>▾</span>
             </button>
-            
+
             {langOpen && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -107,6 +108,7 @@ export default function Home() {
       <section className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 lg:p-8 h-full min-h-0 bg-neutral-50">
         {/* CUSTOMER CARD */}
         <motion.div
+          onClick={() => setActiveCard(activeCard === "customers" ? null : "customers")}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -119,11 +121,11 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 transition-opacity duration-500 group-hover:opacity-90" />
 
           <div className="absolute inset-0 p-8 lg:p-14 flex flex-col justify-end z-10">
-            <div className="transform translate-y-24 group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]">
+            <div className={`transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] ${activeCard === "customers" ? 'translate-y-0' : 'translate-y-24 group-hover:translate-y-0'}`}>
               <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-md">For Customers</h2>
               <p className="text-white/90 text-lg lg:text-xl mb-10 font-medium max-w-md drop-shadow-sm">Find and book the best Hair & Beauty salons in your area.</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150 relative">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-opacity duration-500 delay-150 relative ${activeCard === "customers" ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {countries.map((c) => (
                   <button
                     key={c.code}
@@ -145,6 +147,7 @@ export default function Home() {
 
         {/* PROFESSIONAL CARD */}
         <motion.div
+          onClick={() => setActiveCard(activeCard === "professionals" ? null : "professionals")}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -157,11 +160,11 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 transition-opacity duration-500 group-hover:opacity-90" />
 
           <div className="absolute inset-0 p-8 lg:p-14 flex flex-col justify-end z-10">
-            <div className="transform translate-y-24 group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]">
+            <div className={`transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] ${activeCard === "professionals" ? 'translate-y-0' : 'translate-y-24 group-hover:translate-y-0'}`}>
               <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-md">For Professionals</h2>
               <p className="text-white/90 text-lg lg:text-xl mb-10 font-medium max-w-md drop-shadow-sm">The Salon Software for all Hair & Beauty Professionals.</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-150 relative">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-opacity duration-500 delay-150 relative ${activeCard === "professionals" ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                 {countries.map((c) => (
                   <button
                     key={c.code}
