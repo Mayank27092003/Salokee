@@ -22,10 +22,5 @@ export const requestId = (req: Request, res: Response, next: NextFunction): void
   // Echo it back in every response
   res.setHeader('X-Request-ID', id);
 
-  // Response time header
-  res.on('finish', () => {
-    res.setHeader('X-Response-Time', `${Date.now() - req.startTime}ms`);
-  });
-
   next();
 };
