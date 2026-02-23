@@ -104,6 +104,14 @@ export default function Navbar() {
                 )}
               </div>
 
+              {/* Dashboard Link */}
+              <Link
+                href="/customers/dashboard"
+                className="text-peach hover:text-peach-light transition-colors text-sm font-bold"
+              >
+                My Dashboard
+              </Link>
+
               {/* Login Button */}
               <button
                 onClick={() => setIsLoginModalOpen(true)}
@@ -125,6 +133,13 @@ export default function Navbar() {
                 <Link href="/hiring" className="text-neutral-600 hover:text-peach transition-colors text-sm font-semibold">We're hiring</Link>
                 <Link href="/professionals" className="text-neutral-600 hover:text-peach transition-colors text-sm font-semibold">Are you a Pro?</Link>
                 <div className="border-t border-neutral-200 pt-4 flex flex-col space-y-4">
+                  <Link
+                    href="/customers/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-peach hover:text-peach-light transition-colors text-sm font-bold text-left"
+                  >
+                    My Dashboard
+                  </Link>
                   <button
                     onClick={() => { setIsMobileMenuOpen(false); setIsLoginModalOpen(true); }}
                     className="text-neutral-600 hover:text-peach transition-colors text-sm font-semibold text-left"
