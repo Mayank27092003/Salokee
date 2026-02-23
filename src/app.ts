@@ -14,7 +14,7 @@ import { env, corsOrigins, isProd } from './config/env';
 import { logStream, logger } from './config/logger';
 import { swaggerSpec } from './config/swagger';
 import { prisma } from './config/database';
-import { redis } from './config/redis';
+import { redis, getRedisStatus } from './config/redis';
 import { apiLimiter } from './middleware/rateLimiter';
 import { globalErrorHandler, notFoundHandler } from './middleware/error.middleware';
 import { requestId } from './middleware/requestId.middleware';
@@ -131,24 +131,18 @@ export const createApp = (): Application => {
       };
     }
 
-    const redisStart = Date.now();
-    try {
-      if (redis) {
-        await redis.ping();
-        checks.redis = { status: 'healthy', latencyMs: Date.now() - redisStart };
-      } else {
-        checks.redis = { status: 'degraded', message: 'Redis is air-gapped' };
-      }
-    } catch {
-      checks.redis = { status: 'degraded', message: 'Redis unavailable' };
-    }
+    const redisSummary = await getRedisStatus();
+    checks.redis = {
+      status: redisSummary.overall,
+      message: `TCP: ${redisSummary.tcp}, REST: ${redisSummary.rest}`
+    };
 
     const memUsage = process.memoryUsage();
     const totalHeapMb = Math.round(memUsage.heapTotal / 1024 / 1024);
     const usedHeapMb = Math.round(memUsage.heapUsed / 1024 / 1024);
     const heapPercent = Math.round((usedHeapMb / totalHeapMb) * 100);
     checks.memory = {
-      status: heapPercent > 90 ? 'degraded' : 'healthy',
+      status: (heapPercent > 95 && usedHeapMb > 100) ? 'degraded' : 'healthy',
       message: `${usedHeapMb}MB / ${totalHeapMb}MB (${heapPercent}%)`,
     };
 

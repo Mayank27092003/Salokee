@@ -179,3 +179,21 @@ export const blacklistToken = async (jti: string, ttl: number): Promise<void> =>
 export const isTokenBlacklisted = async (jti: string): Promise<boolean> => {
   return redisExists(`${BLACKLIST_PREFIX}${jti}`);
 };
+
+export const getRedisStatus = async () => {
+  const status: {
+    tcp: 'connected' | 'disconnected' | 'skipped';
+    rest: 'active' | 'inactive';
+    overall: 'healthy' | 'degraded' | 'down';
+  } = {
+    tcp: isRedisTCPActive ? (redis?.status === 'ready' ? 'connected' : 'disconnected') : 'skipped',
+    rest: isRedisRESTActive ? 'active' : 'inactive',
+    overall: 'down'
+  };
+
+  if (status.tcp === 'connected') status.overall = 'healthy';
+  else if (status.rest === 'active') status.overall = 'healthy'; // REST is enough to be healthy
+  else if (status.tcp === 'skipped' && status.rest === 'inactive') status.overall = 'degraded';
+
+  return status;
+};
