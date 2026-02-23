@@ -26,12 +26,17 @@ const createRedisClient = () => {
     enableOfflineQueue: false,
     lazyConnect: true,
     connectTimeout: 5000,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 0, // Disable automatic retries per request to avoid unhandled rejections
   });
 
   client.on('connect', () => logger.info('✅ Redis connected'));
   client.on('ready', () => logger.info('✅ Redis ready'));
-  client.on('error', (err) => logger.error('Redis error', { error: err.message }));
+  client.on('error', (err) => {
+    // Only log if not already disabling
+    if (client.status !== 'end') {
+      logger.error('Redis error', { error: err.message });
+    }
+  });
   client.on('close', () => logger.warn('Redis connection closed'));
   client.on('reconnecting', () => logger.info('Redis reconnecting...'));
 
@@ -41,12 +46,23 @@ const createRedisClient = () => {
 export const redis = createRedisClient();
 
 export const connectRedis = async (): Promise<boolean> => {
+  // If Redis is not configured or fails, we just don't use it.
   try {
-    await redis.connect();
-    await redis.ping();
-    return true;
+    // Only attempt connection if not already connecting/connected
+    if (redis.status === 'wait') {
+      await redis.connect().catch((err) => {
+        logger.warn('Redis initial connection failed', { error: err.message });
+      });
+    }
+
+    // Check if we are connected
+    if (redis.status === 'ready' || redis.status === 'connect') {
+      await redis.ping();
+      return true;
+    }
+    return false;
   } catch (error) {
-    logger.warn('⚠️  Redis unavailable — running without cache/token blacklist', {
+    logger.warn('⚠️ Redis unavailable — running without cache/token blacklist', {
       error: (error as Error).message,
     });
     return false;
