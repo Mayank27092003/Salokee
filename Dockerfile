@@ -5,7 +5,8 @@ RUN apk add --no-cache openssl
 # ─── Dependencies stage ──────────────────────────────────────
 FROM base AS deps
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+COPY prisma ./prisma
+RUN npm ci --only=production && npx prisma generate && npm cache clean --force
 
 # ─── Build stage ─────────────────────────────────────────────
 FROM base AS builder
