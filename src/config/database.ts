@@ -97,8 +97,15 @@ export const connectPrisma = async () => {
   try {
     await (prisma as unknown as PrismaClient).$connect();
     logger.info('✅ Database connected successfully');
-  } catch (error) {
-    logger.error('❌ Database connection failed', { error });
+  } catch (error: any) {
+    logger.error('❌ Database connection failed', {
+      errorMessage: error?.message,
+      errorName: error?.name,
+      errorStack: error?.stack,
+      dbUrlExists: !!process.env.DATABASE_URL
+    });
+    // Fallback console.error just in case Winston fails
+    console.error('PRISMA CONNECTION FATAL ERROR:', error?.message);
     process.exit(1);
   }
 };
