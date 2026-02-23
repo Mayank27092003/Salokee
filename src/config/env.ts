@@ -64,8 +64,9 @@ const envSchema = z.object({
 const parseResult = envSchema.safeParse(process.env);
 
 if (!parseResult.success) {
-  console.error('❌ Invalid environment configuration:');
-  console.error(parseResult.error.format());
+  // Use synchronous blocking write to ensure Render captures this before exit 1
+  require('fs').writeFileSync(1, '\n\n❌ FATAL: ENVIRONMENT VALIDATION FAILED ❌\n');
+  require('fs').writeFileSync(1, JSON.stringify(parseResult.error.format(), null, 2) + '\n\n');
   process.exit(1);
 }
 
@@ -75,4 +76,4 @@ export const isDev = env.NODE_ENV === 'development';
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';
 
-export const corsOrigins = env.CORS_ORIGINS.split(',').map((o) => o.trim());
+export const corsOrigins = env.CORS_ORIGINS.split(',').map((o: string) => o.trim());
