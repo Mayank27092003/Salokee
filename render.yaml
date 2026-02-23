@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: salon-api
+    env: node
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: API_VERSION
+        value: v1
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: salon-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: salon-redis
+          property: port
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+  - type: redis
+    name: salon-redis
+    ipAllowList: [] # only allow internal connections
+    plan: free

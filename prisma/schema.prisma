@@ -1,0 +1,263 @@
+// ============================================================
+// SALON BOOKING PLATFORM — DATABASE SCHEMA
+// Production-Grade | Phase 1 Foundation
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN        // Salon owner/manager
+  STAFF        // Stylist/barber — Phase 2
+  CUSTOMER
+}
+
+enum TokenType {
+  REFRESH
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+// ─────────────────────────────────────────────────────────────
+// USER — Core identity for all roles
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  email         String        @unique @db.VarChar(255)
+  phone         String?       @unique @db.VarChar(20)
+  passwordHash  String        @map("password_hash") @db.Text
+  role          Role          @default(CUSTOMER)
+  status        AccountStatus @default(PENDING_VERIFICATION)
+
+  // Profile
+  firstName     String        @map("first_name") @db.VarChar(100)
+  lastName      String        @map("last_name") @db.VarChar(100)
+  avatarUrl     String?       @map("avatar_url") @db.Text
+  gender        Gender?
+  dateOfBirth   DateTime?     @map("date_of_birth") @db.Date
+
+  // Security
+  emailVerified       Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt     DateTime? @map("email_verified_at")
+  twoFactorEnabled    Boolean   @default(false) @map("two_factor_enabled")
+  twoFactorSecret     String?   @map("two_factor_secret") @db.Text
+  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginIp         String?   @map("last_login_ip") @db.VarChar(45)
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  passwordChangedAt   DateTime? @map("password_changed_at")
+
+  // Audit
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // Soft delete
+
+  // Relations
+  tokens          Token[]
+  auditLogs       AuditLog[]
+  customerProfile CustomerProfile?
+  adminProfile    AdminProfile?
+  sessions        Session[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([role, status])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────
+// CUSTOMER PROFILE — Extended data for customers
+// ─────────────────────────────────────────────────────────────
+
+model CustomerProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  preferences    Json?    // Hair type, preferences, notes
+  loyaltyPoints  Int      @default(0) @map("loyalty_points")
+  totalBookings  Int      @default(0) @map("total_bookings")
+  totalSpent     Decimal  @default(0) @map("total_spent") @db.Decimal(10, 2)
+  notes          String?  @db.Text // Internal staff notes
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN PROFILE — Extended data for salon admins
+// ─────────────────────────────────────────────────────────────
+
+model AdminProfile {
+  id         String  @id @default(uuid()) @db.Uuid
+  userId     String  @unique @map("user_id") @db.Uuid
+  salonId    String? @map("salon_id") @db.Uuid // Linked in Phase 2
+  department String? @db.VarChar(100)
+  bio        String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────
+// TOKEN — Refresh, email verification, password reset
+// ─────────────────────────────────────────────────────────────
+
+model Token {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  token     String    @unique @db.Text
+  type      TokenType
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  ipAddress String?   @map("ip_address") @db.VarChar(45)
+  userAgent String?   @map("user_agent") @db.Text
+  revoked   Boolean   @default(false)
+  revokedAt DateTime? @map("revoked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@index([userId, type, revoked, expiresAt]) // covers the "find valid token" query pattern
+  @@map("tokens")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SESSION — Active user sessions (for device management)
+// ─────────────────────────────────────────────────────────────
+
+model Session {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  refreshTokenId String? @map("refresh_token_id") @db.Uuid
+  deviceName   String?   @map("device_name") @db.VarChar(255)
+  deviceType   String?   @map("device_type") @db.VarChar(50)
+  browser      String?   @db.VarChar(100)
+  os           String?   @db.VarChar(100)
+  ipAddress    String?   @map("ip_address") @db.VarChar(45)
+  location     String?   @db.VarChar(255)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  expiresAt    DateTime  @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([expiresAt])
+  @@index([userId, isActive, expiresAt]) // covers "find active non-expired sessions" pattern
+  @@map("sessions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// AUDIT LOG — Immutable security & activity trail
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String  @id @default(uuid()) @db.Uuid
+  userId     String? @map("user_id") @db.Uuid
+  action     String  @db.VarChar(100) // e.g. AUTH_LOGIN, USER_UPDATE
+  resource   String? @db.VarChar(100) // e.g. user, appointment
+  resourceId String? @map("resource_id") @db.VarChar(255)
+  details    Json?
+  ipAddress  String? @map("ip_address") @db.VarChar(45)
+  userAgent  String? @map("user_agent") @db.Text
+  success    Boolean @default(true)
+  errorCode  String? @map("error_code") @db.VarChar(50)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId, createdAt])   // covers per-user audit history queries
+  @@index([action, success])     // covers failed-event analysis queries
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SALON — Placeholder for Phase 2 relations
+// (Schema defined now to avoid breaking migrations)
+// ─────────────────────────────────────────────────────────────
+
+model Salon {
+  id          String        @id @default(uuid()) @db.Uuid
+  slug        String        @unique @db.VarChar(100)
+  name        String        @db.VarChar(255)
+  description String?       @db.Text
+  phone       String?       @db.VarChar(20)
+  email       String?       @db.VarChar(255)
+  website     String?       @db.Text
+  logoUrl     String?       @map("logo_url") @db.Text
+  coverUrl    String?       @map("cover_url") @db.Text
+  status      AccountStatus @default(PENDING_VERIFICATION)
+
+  // Address
+  addressLine1 String?  @map("address_line1") @db.VarChar(255)
+  addressLine2 String?  @map("address_line2") @db.VarChar(255)
+  city         String?  @db.VarChar(100)
+  state        String?  @db.VarChar(100)
+  country      String?  @db.VarChar(100)
+  postalCode   String?  @map("postal_code") @db.VarChar(20)
+  latitude     Decimal? @db.Decimal(10, 8)
+  longitude    Decimal? @db.Decimal(11, 8)
+
+  // Business hours stored as JSON for flexibility
+  // { "mon": { "open": "09:00", "close": "18:00", "isOpen": true }, ... }
+  businessHours Json? @map("business_hours")
+
+  // Settings
+  timezone     String  @default("UTC") @db.VarChar(50)
+  currency     String  @default("USD") @db.VarChar(3)
+  bookingBuffer Int    @default(15) @map("booking_buffer") // minutes between appointments
+  maxAdvanceBook Int   @default(30) @map("max_advance_book") // days in advance
+  settings     Json?   // Additional configurable settings
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([slug])
+  @@index([status])
+  @@map("salons")
+}
