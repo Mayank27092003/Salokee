@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-800;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-3 bg-primary text-white rounded-md font-semibold transition-all duration-300 hover:bg-primary-dark hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply px-7 py-2.5 border-2 border-neutral-700 text-neutral-700 bg-transparent rounded-md font-semibold transition-all duration-300 hover:bg-neutral-700 hover:text-white;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-card transition-all duration-300 hover:shadow-card-hover;
+  }
+}
